@@ -27,7 +27,6 @@ class ResourceManager:
             return x
 
         self.snake: Surface = Future(pygame.image.load, "img/snake.bmp", callback=aa)
-        self.hand: Surface = Future(pygame.image.load, "img/hand.bmp", callback=aa)
 
         def a(sound: Sound):
             """降低声响"""
@@ -35,9 +34,9 @@ class ResourceManager:
         self.single_music: Sound = Future(Sound, "sound/single.mp3", callback=a)
         self.online_music: Sound = Future(Sound, "sound/online.mp3", callback=a)
 
-    def load(self, client):
+    def load(self, client, screen, callback):
         from gui.screens import InitScreen
-        screen = InitScreen(len(self.__futures))
+        screen = InitScreen(len(self.__futures), screen, callback)
         client.window.setscreen(screen)
 
         def a():
@@ -80,3 +79,6 @@ class Future:
             if b:
                 return b
         return a
+
+    def __getattr__(self, item):
+        return lambda *args, **kwargs: ...

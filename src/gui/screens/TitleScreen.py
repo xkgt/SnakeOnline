@@ -1,16 +1,15 @@
 import random
+from typing import Optional
 
 import pygame.transform
 from pygame import Rect
 
-from game.entities import Player
 from gui import layouts
-from typing import Optional
-from moretypes import Vector2
-from .Screen import Screen
-from .GameScreen import GameScreen
 from gui.widgets import Button, Widget, Label
+from game import Direction
+from .GameScreen import GameScreen
 from .OnlineScreen import OnlineScreen
+from .Screen import Screen
 
 
 class TitleScreen(Screen):
@@ -25,6 +24,7 @@ class TitleScreen(Screen):
         self.direction = 0.1  # 旋转方向
         self.icon_angle = 0  # 图标角度
         self.title_color_index = 0  # 标题颜色索引
+        self.game_render_rect = None
 
     def init(self, width, height):
         icon = self.resourcemanager.icon
@@ -33,7 +33,7 @@ class TitleScreen(Screen):
         title_rect = self.font.get_rect("贪 吃 蛇", size=50)
         title_widget = Widget(*title_rect)  # 文字站位
 
-        if self.client.connection and not self.client.connection.is_local():
+        if self.client.connection and not self.client.connection.is_local() or self.client.networksystem:
             online_button = Button.build(220, 70, "断开连接", self.font, self.quit_game)
         else:
             online_button = Button.build(220, 70, "多人游戏", self.font, self.online_game)
@@ -54,6 +54,10 @@ class TitleScreen(Screen):
             self.addwidget(Label(self.font, "哔哩哔哩：233星空xt", size=15, fgcolor=(255, 255, 255))),
             bottom=height - 4, x=4, align=layouts.LEFT_TOP
         )
+        # 获得绘画区域大小
+        self.game_render_rect = Rect(0, 0, self.width - self.menu_rect.right - self.menu_rect.x * 3, self.menu_rect.h)
+        self.game_render_rect.bottom = self.menu_rect.bottom
+        self.game_render_rect.x = self.menu_rect.right + self.menu_rect.x
 
     def single_game(self):
         if not self.client.game:
@@ -85,12 +89,10 @@ class TitleScreen(Screen):
         if self.client.connection:  # 有连接(有游戏)
             # 玩家不存在或已死
             if not self.client.player:
-                self.client.connection.request_create_player(Vector2(
-                    random.randint(Player.radius, self.width - Player.radius),
-                    random.randint(Player.radius, self.height - Player.radius)))
-            # else:
-            #     if random.randint(0, frame * 6) == 0:
-            #         self.client.connection.set_angle(random.randint(0, 360))
+                self.client.connection.request_create_player(self.client.game.random_pos())
+            else:
+                if random.randint(0, self.client.framerate * 4) == 0:
+                    self.client.connection.set_direction(Direction.random_direction())
         super().tick(frame)
 
     def render(self, surface, mousex: int, mousey: int):
@@ -120,14 +122,8 @@ class TitleScreen(Screen):
         surface.blit(volume_image, volume_rect)
         # 绘制游戏
         if self.client.renderer:
-            self.client.renderer.render(False, 0, 0)
-            w, h = self.client.renderer.screen.get_size()
-            a = self.width - (self.menu_rect.x * 3 + self.menu_rect.w)  # 缩放
-            screen = pygame.transform.scale(self.client.renderer.screen, (a, h * (a / w)))
-            rect = screen.get_rect()
-            rect.centery = self.menu_rect.centery
-            rect.centerx = self.menu_rect.x * 2 + self.menu_rect.w + rect.w / 2
-            surface.blit(screen, rect)
+            # 缩放游戏屏幕
+            self.render_game(surface, mousex, mousey, self.game_render_rect, False)
 
     def exit(self):
         self.client.stop()

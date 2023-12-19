@@ -1,7 +1,7 @@
 import math
 from collections import namedtuple
 from uuid import UUID
-from network import DataStream
+from DataStream import DataStream
 from pygame import Color as _Color, Vector2 as _Vector2
 
 __all__ = [
@@ -17,8 +17,8 @@ class Serializable:
     @classmethod
     def read(cls, stream: DataStream):
         args = []
-        for parameter in cls.__annotations__.values():
-            args.append(stream >> parameter)
+        for type_ in cls.__annotations__.values():
+            args.append(stream >> type_)
         return cls(*args)
 
     def write(self, stream: DataStream):
@@ -29,7 +29,7 @@ class Serializable:
 
 class Color(_Color, Serializable):
     def __hash__(self):
-        return hash((self[0], self[1], self[2]))
+        return hash((self[0], self[1], self[2], self[3]))
 
     @classmethod
     def read(cls, stream: DataStream):

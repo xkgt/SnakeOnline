@@ -23,14 +23,14 @@ class ConnectionList(list[Connection]):
     def broadcast_remove_entity(self, entity: Entity):
         ...
 
-    @broadcast(Connection.server_close)
-    def broadcast_server_close(self, message: str):
-        ...
-
     @broadcast(Connection.update_playerlist)
     def broadcast_update_playerlist(self, playerlist: PlayerList):
         ...
 
     @broadcast(Connection.update_entity)
     def broadcast_update_entity(self, entity: Entity):
+        ...
+
+    @broadcast(Connection.server_disconnect)
+    def broadcast_server_disconnect(self, message: str):
         ...

@@ -8,10 +8,21 @@ class DataStream(io.BytesIO):
     def __init__(self, *args):  # 删掉后某地方会有类型警告
         super().__init__(*args)
 
+    # def write(self, __buffer):
+    #     print(__buffer)
+    #     return super().write(__buffer)
+    #
+    # def read(self, __size = ...):
+    #     print(__size)
+    #     a = super().read(__size)
+    #     print(a)
+    #     return a
+
     def __lshift__(self, other):
         if hasattr(other, "write"):
             other.write(self)
-        getattr(self, "write_"+type(other).__name__.lower())(other)
+        else:
+            getattr(self, "write_"+type(other).__name__.lower())(other)
         return self
 
     def __rshift__(self, other):
@@ -21,20 +32,30 @@ class DataStream(io.BytesIO):
             return getattr(self, "read_" + other.lower())()
         return getattr(self, "read_" + other.__name__.lower())()
 
+    write_bytes = io.BytesIO.write
+    read_bytes = io.BytesIO.read
+
     def read_int(self) -> int:
         return struct.unpack("i", self.read(4))[0]
 
     def write_int(self, value: int):
         self.write(struct.pack("i", value))
 
+    def write_short(self, value: int):
+        self.write(struct.pack("h", value))
+
     def read_short(self) -> int:
         return struct.unpack("h", self.read(2))[0]
 
-    def read_str(self) -> str:
-        return self.read(struct.unpack("h", self.read(2))[0]).decode()
-
     def write_str(self, value: str):
-        self.write(struct.pack("h", len(value)) + value.encode())
+        data = value.encode("utf8")
+        self.write_short(len(data))
+        self.write(data)
+
+    def read_str(self) -> str:
+        size = self.read_short()
+        data = self.read(size)
+        return data.decode("utf8")
 
     def read_float(self) -> float:
         return struct.unpack("f", self.read(4))[0]

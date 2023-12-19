@@ -1,4 +1,5 @@
 from gui import layouts
+from .GameScreen import GameScreen
 from .InfoScreen import InfoScreen
 from .Screen import Screen
 from gui.widgets import TextLine, Button, Widget, Label
@@ -15,7 +16,7 @@ class OnlineScreen(Screen):
             if self.inputline.text:
                 port = int(self.inputline.text)
             else:
-                port = 18389
+                port = 5566
         except ValueError:
             self.window.setscreen(InfoScreen(self, "格式错误，输入值应为0~65536范围内的数字"))
         else:
@@ -25,7 +26,7 @@ class OnlineScreen(Screen):
                 self.window.setscreen(InfoScreen(self.lastscreen, str(e)))
             else:
                 self.window.topscreen.tip(f"端口已开放{port}", 2)
-                self.back()
+                self.window.setscreen(GameScreen())
 
     def connect(self):
         try:
@@ -41,7 +42,7 @@ class OnlineScreen(Screen):
         if self.inputline:
             self.addwidget(self.inputline)
         else:
-            self.inputline = self.addwidget(TextLine(600, 60, self.font, placeholder_text="默认开放端口18389"))
+            self.inputline = self.addwidget(TextLine(600, 60, self.font, placeholder_text="默认开放端口5566"))
         # 按钮
         join_button = self.addwidget(Button.build(290, 60, "加入房间", self.font, self.connect))
         create_button = self.addwidget(Button.build(290, 60, "创建房间", self.font, self.publish))

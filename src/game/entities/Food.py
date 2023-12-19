@@ -1,18 +1,17 @@
-import random
-from moretypes import Vector2, Size
-from .Ball import Ball
+from typing import TYPE_CHECKING
+
+from .Entity import Entity
+if TYPE_CHECKING:
+    from ..IGame import IGame
 
 
-class Food(Ball):
-    radius = 16
+class Food(Entity):
 
     def kill(self):
         if super().kill():
-            self.entitymanager.add(self.random_pos_food(self.game.size))
+            if self.game.is_run_in_server:
+                self.entitymanager.add(self.random_pos_food(self.game))
 
     @classmethod
-    def random_pos_food(cls, size: Size):
-        return cls(Vector2(
-            random.randint(cls.radius, size[0] - Food.radius),
-            random.randint(cls.radius, size[1] - Food.radius)
-        ))
+    def random_pos_food(cls, game: "IGame"):
+        return cls(game.random_pos())

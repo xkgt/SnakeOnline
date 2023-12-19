@@ -3,3 +3,5 @@ from .IGame import IGame
 from .Game import Game
 from .PlayerList import PlayerList
 from .PlayerInfo import PlayerInfo
+from .Direction import Direction
+

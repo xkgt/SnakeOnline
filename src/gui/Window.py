@@ -21,7 +21,7 @@ class Window(Listener):
         pygame.display.set_caption("多人对战")
         pygame.display.set_icon(client.resourcemanager.icon)
         # 创建屏幕
-        self.surface: Surface = pygame.display.set_mode((1380, 750), pygame.SRCALPHA)
+        self.surface: Surface = pygame.display.set_mode((1200, 750), pygame.SRCALPHA | pygame.RESIZABLE)
         self.screen: Optional[Screen] = None  # 当前屏幕，可能不存在
         self.topscreen = TopScreen()
         self.addlistener(self.topscreen)

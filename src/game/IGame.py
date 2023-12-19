@@ -1,12 +1,16 @@
+import random
+
 from Ticker import Ticker
-from network import DataStream
+from DataStream import DataStream
 from .EntityManager import EntityManager
 from .PlayerList import PlayerList
-from moretypes import Size, Serializable
+from moretypes import Size, Serializable, Vector2
 
 
 class IGame(Ticker, Serializable):
     """基础游戏属性"""
+    is_run_in_server = False
+
     def __init__(self, size: Size, framerate):
         from .ConnectionList import ConnectionList
         super().__init__(framerate)
@@ -24,3 +28,9 @@ class IGame(Ticker, Serializable):
         size = stream >> Size
         framerate = stream >> int
         return cls(size, framerate)
+
+    def random_pos(self) -> Vector2:
+        return Vector2(
+            random.randint(0, self.size.w),
+            random.randint(0, self.size.h)
+        )

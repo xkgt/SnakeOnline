@@ -1,11 +1,13 @@
 from typing import TYPE_CHECKING, TypeVar
 
 import pygame.mouse
-from pygame import Surface
+from pygame import Surface, Rect
 
 from gui.Listener import Listener
 from gui.widgets import Widget
 from gui.Paintable import Paintable
+from resouces import transform
+
 if TYPE_CHECKING:
     from Client import Client
 _T = TypeVar("_T", bound=Widget)
@@ -41,6 +43,41 @@ class Screen(Paintable, Listener):
         for widget in self.widgets:
             widget.render(surface, mousex, mousey)
 
+    def render_game(self, surface: Surface, mousex: int, mousey: int, game_render_rect: Rect, focus: bool):
+        """绘制游戏到屏幕上"""
+        game_display_rect = self.get_game_display_rect(game_render_rect)
+        # 鼠标
+        if focus:
+            if game_display_rect.collidepoint(mousex, mousey):
+                # 鼠标也需要缩放
+                mousex, mousey = self.get_game_display_rect_mouse_pos(game_display_rect, mousex, mousey)
+            else:
+                focus = False
+        self.client.renderer.render(focus, mousex, mousey)
+        game_screen = transform.scale(self.client.renderer.screen, w=game_display_rect.w, h=game_display_rect.h)
+        surface.blit(game_screen, game_display_rect)
+
+    def get_game_display_rect_mouse_pos(self, game_display_rect: Rect, mousex, mousey):
+        mousex -= game_display_rect.x
+        mousey -= game_display_rect.y
+        game_screen_rect = self.client.renderer.screen.get_rect()
+        mousex = game_screen_rect.w / game_display_rect.w * mousex
+        mousey = game_screen_rect.h / game_display_rect.h * mousey
+        return mousex, mousey
+
+    def get_game_display_rect(self, game_render_rect: Rect) -> Rect:
+        """已指定区域为范围获取绘制的区域"""
+        game_screen_rect = self.client.renderer.screen.get_rect()
+        # 缩放
+        if game_render_rect.h >= game_render_rect.w:
+            game_screen_rect.h = game_render_rect.w / game_screen_rect.w * game_screen_rect.h
+            game_screen_rect.w = game_render_rect.w
+        else:
+            game_screen_rect.w = game_render_rect.h / game_screen_rect.h * game_screen_rect.w
+            game_screen_rect.h = game_render_rect.h
+        game_screen_rect.center = game_render_rect.center
+        return game_screen_rect
+
     @property
     def resourcemanager(self):
         return self.client.resourcemanager
@@ -53,10 +90,10 @@ class Screen(Paintable, Listener):
     def window(self):
         return self.client.window
 
-    def __setattr__(self, key, value):
-        if isinstance(value, Widget):
-            self.initwidget(value)
-        super().__setattr__(key, value)
+    # def __setattr__(self, key, value):
+    #     if isinstance(value, Widget):
+    #         self.initwidget(value)
+    #     super().__setattr__(key, value)
 
     def initwidget(self, widget):
         widget.screen = self
@@ -70,4 +107,4 @@ class Screen(Paintable, Listener):
 
     @Listener.event
     def close(self):
-        ...
+        pygame.key.stop_text_input()

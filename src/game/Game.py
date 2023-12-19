@@ -1,3 +1,5 @@
+import logging
+
 from .IGame import IGame
 from .PlayerInfo import PlayerInfo
 from .entities import Player, Food
@@ -7,9 +9,11 @@ from moretypes import Size, Color
 
 class Game(IGame):
     """贪吃蛇游戏"""
+    is_run_in_server = True
 
     def __init__(self):
-        IGame.__init__(self, Size(1000, 800), 6)
+        self.logger = logging.getLogger(Game.__name__)
+        IGame.__init__(self, Size(50, 50), 4)
         # 玩家颜色列表，也是最大玩家数
         self.colors: list[Color] = [Color(30, 233, 30), Color(0, 0, 255), Color(255, 0, 255), ]
 
@@ -18,7 +22,10 @@ class Game(IGame):
 
     def start(self):
         """启动游戏"""
-        self.entitymanager.add(Food.random_pos_food(self.size))
+        self.entitymanager.add(Food.random_pos_food(self))
+
+    def end(self):
+        ...
 
     def handle_join(self, connection: Connection, name):
         """添加新的连接"""
@@ -28,6 +35,7 @@ class Game(IGame):
             if c.playerinfo.name == name:
                 name = f"Player_{name}"
                 break
+        self.logger.info(f"新的连接: {connection}")
         playerinfo = PlayerInfo(name, self.colors.pop(0))
         # 成功加入，设置客户端信息
         connection.set_playerinfo(playerinfo)
@@ -35,9 +43,9 @@ class Game(IGame):
         for entity in self.entitymanager:
             connection.create_entity(entity)
         # 启用和禁用请求
-        connection.request_create_player.enable()
-        connection.set_angle.enable()
-        connection.login.disable()
+        connection.request_create_player.enable()  # 允许创建玩家请求
+        connection.set_direction.enable()  # 设置方向
+        connection.login.disable()  # 禁用登录
         # 添加
         self.connectionlist.append(connection)
         self.playerlist.append(playerinfo)
@@ -45,9 +53,12 @@ class Game(IGame):
 
     def handle_exit(self, connection: Connection):
         """处理退出"""
+        self.logger.info(f"断开: {connection}")
         self.colors.append(connection.playerinfo.color)
         self.connectionlist.remove(connection)
         self.playerlist.remove(connection.playerinfo)
+        if connection.player:
+            connection.player.kill()
         self.connectionlist.broadcast_update_playerlist(self.playerlist)
 
     def create_player(self, pos, connection: Connection) -> Player:

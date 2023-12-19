@@ -1,4 +1,4 @@
-from network import DataStream
+from DataStream import DataStream
 from .PlayerInfo import PlayerInfo
 from moretypes import Serializable
 

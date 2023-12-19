@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Optional
+from typing import Optional, Callable
 
 from pygame.time import Clock
 
@@ -43,7 +43,7 @@ class Client(Ticker, GameSide):
     def tick(self, frame):
         self.window.tick(frame)
         if self.game:
-            if frame % (self.config.fps // self.game.framerate) == 0:  # 模拟tps
+            if frame % (self.framerate // self.game.framerate) == 0:  # 模拟tps
                 self.game.tick(frame // self.game.framerate)
                 self.tpsdetector.tick(0)
                 self.currenttps = self.tpsdetector.get_fps()
@@ -88,6 +88,7 @@ class Client(Ticker, GameSide):
                     self.disconnect()
             except Exception as e:
                 if run:
+                    self.disconnect()
                     self.window.setscreen(InfoScreen(lastscreen, f"连接失败：{e}", None))
 
         self.window.setscreen(InfoScreen(lastscreen, "正在连接", stop))
@@ -96,30 +97,29 @@ class Client(Ticker, GameSide):
     def create_connection(self) -> Connection:
         connection = Connection(client=self)
         # 启用处理器
-        connection.set_playerinfo.enable()
-        connection.set_game.enable()
-        connection.login_reply.enable()
+        connection.set_playerinfo.enable()  # 允许设置玩家信息
+        connection.set_game.enable()  # 游戏
+        connection.login_success.enable()  # 登录回复
+        connection.server_disconnect.enable()  # 服务器关闭
         return connection
 
     def disconnect(self):
         """断开连接"""
-        if self.networksystem:
-            self.networksystem.close()
-            self.networksystem = None
         if self.connection:
             self.connection.close()
             self.connection = None
         if self.game:
             self.game.end()
             self.game: Optional[IGame] = None
+        if self.networksystem:
+            self.networksystem.close("服务器关闭")
+            self.networksystem = None
         self.renderer = None
 
     def start_game(self):
         self.game = Game()
         self.game.start()
         self.connection = self.create_connection()
-        # 启用处理器
-        self.connection.login.enable()
         self.game.handle_join(self.connection, self.config.name)
         if self.config.playsound:
             self.resourcemanager.play_single_music()
@@ -131,8 +131,11 @@ class Client(Ticker, GameSide):
         if not self.connection.is_local():
             self.window.setscreen(GameScreen())
 
-    def start(self):
-        self.resourcemanager.load(self)
+    def start(self, callback: Callable[["Client"], None] = None):
+        if callback:
+            self.resourcemanager.load(self, None, lambda: callback(self))
+        else:
+            self.resourcemanager.load(self, TitleScreen(), self.start_game)
         self.run()
 
     def end(self):

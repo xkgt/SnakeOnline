@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Optional
 
 from moretypes import Vector2, Serializable
-from network import DataStream
+from DataStream import DataStream
 
 if TYPE_CHECKING:
     from game import IGame
@@ -11,10 +11,9 @@ if TYPE_CHECKING:
 class Entity(Serializable):
     sub_classes: list[type["Entity"]] = []
 
-    def __init__(self, pos: Vector2, motion: Vector2 = None):
+    def __init__(self, pos: Vector2):
         self.uuid = uuid4()
         self.pos = pos
-        self.motion = motion or Vector2()
         self.killed = False
         self.game: Optional["IGame"] = None
 
@@ -23,7 +22,11 @@ class Entity(Serializable):
 
     def synchronize(self):
         """与客户端同步"""
-        self.game.connectionlist.broadcast_update_entity(self)
+        if not self.killed:
+            self.game.connectionlist.broadcast_update_entity(self)
+
+    def collision(self, entity: "Entity") -> bool:
+        return entity.pos == self.pos
 
     @property
     def entitymanager(self):
@@ -32,19 +35,16 @@ class Entity(Serializable):
     def kill(self) -> bool:
         if not self.killed:
             self.killed = True
-            self.entitymanager.remove(self)
+            if self.uuid in self.entitymanager.entities:
+                self.entitymanager.remove(self)
             return True
         return False
-
-    def collision(self, entity: "Entity") -> bool:
-        ...
 
     def write(self, stream: DataStream, complete=True):
         """写入数据，complete:是否完整写入，用于创建实体"""
         if complete:
             stream << self.uuid
         stream << self.pos
-        stream << self.motion
 
     def load(self, stream: DataStream, complete=False):
         """更新数据，complete:是否完整更新"""
@@ -52,7 +52,6 @@ class Entity(Serializable):
             self.uuid = stream >> UUID
             self.killed = False  # 不写的话,新建时没有killed属性
         self.pos = stream >> Vector2
-        self.motion = stream >> Vector2
 
     @classmethod
     def read(cls, stream: DataStream) -> "Entity":
@@ -63,3 +62,6 @@ class Entity(Serializable):
 
     def __init_subclass__(cls, **kwargs):
         cls.sub_classes.append(cls)
+
+    def __str__(self):
+        return f"<{self.__class__.__name__}[uuid={self.uuid},pos={self.pos}]>"

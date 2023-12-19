@@ -1,27 +1,21 @@
-from game import IGame
-from network import NetworkSystem
+from GameSide import GameSide
+from game import Game
 from Ticker import Ticker
-from krpc import rpc, Side
 
 
-class Server(Ticker):
-    def __init__(self):
-        rpc.side = Side.SERVER
-        self.game = IGame()
-        super().__init__(self.game.framerate)
-        self.networksystem = NetworkSystem(self.game, port=18389)
+class Server(Ticker, GameSide):
+    def __init__(self, port):
+        super().__init__(20)
+        GameSide.__init__(self)
+        self.game = Game()
+        self.game.start()
+        self.publish(port)
 
     def tick(self, frame):
         self.networksystem.tick()
-        self.game.tick(frame)
+        if frame % (self.framerate // self.game.framerate) == 0:
+            self.game.tick(frame)
 
     def end(self):
-        self.networksystem.close()
+        self.networksystem.close("服务器关闭")
         self.game.end()
-
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(handlers=[logging.StreamHandler()])
-    server = Server()
-    server.run()

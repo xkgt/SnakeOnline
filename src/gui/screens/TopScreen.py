@@ -36,7 +36,7 @@ class TopScreen(Screen):
             self.resourcemanager.config.playsound = not self.resourcemanager.config.playsound
             if not self.client.config.playsound:  # 如果禁止播放声音
                 self.resourcemanager.stop_music()
-            elif self.client.connection and self.client.connection.player_num > 1:  # 如果在联机
+            elif self.client.game and len(self.client.game.playerlist) > 1:  # 如果在联机
                 self.resourcemanager.play_online_music()
             else:  # 否则就是单人游戏
                 self.resourcemanager.play_single_music()

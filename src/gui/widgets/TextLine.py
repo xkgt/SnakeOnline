@@ -33,6 +33,10 @@ class TextLine(Widget, Listener):
         if self.focus:
             if key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
+            elif key == pygame.K_v:
+                if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                    import pyperclip
+                    self.text += pyperclip.paste()
             self.setcursor(True)
             raise StopIteration
 
@@ -57,16 +61,16 @@ class TextLine(Widget, Listener):
         surface.blit(text_surface, text_rect)
         # 光标
         if self.cursor:
-            cursor_x = text_rect.right + 2 if self.text else 5
+            cursor_x = (text_rect.right if self.text else text_rect.left) + 2
             pygame.draw.line(surface, (0, 0, 0),
                              (cursor_x, self.rect.top+6),
                              (cursor_x, self.rect.bottom-6), width=2)
 
-    def setcursor(self, v):
+    def setcursor(self, v: bool):
         self.cursor = v
         self.cursor_time = 0
 
-    def setfocus(self, v):
+    def setfocus(self, v: bool):
         self.focus = v
         self.setcursor(v)
         if v:

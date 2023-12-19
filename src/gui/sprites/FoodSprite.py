@@ -11,7 +11,7 @@ class FoodSprite(EntitySprite[Food]):
     def render(self, surface):
         img = transform.scale(
             self.resourcemanager.food,
-            self.entity.radius * 2.5,
-            self.entity.radius * 2.5
+            self.renderer.grid_size,
+            self.renderer.grid_size
         )
-        surface.blit(img, img.get_rect(center=self.entity.pos))
+        surface.blit(img, img.get_rect(topleft=self.entity.pos*self.renderer.grid_size))

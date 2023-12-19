@@ -18,8 +18,9 @@ class Renderer:
         self.client = client
         self.resourcemanager = resourcemanager
         self.game = game
-
-        self.screen = Surface(game.size, pygame.SRCALPHA)
+        self.grid_size = 30
+        # 地图虽然很小，但像素得高点
+        self.screen = Surface((game.size.w*self.grid_size, game.size.h*self.grid_size), pygame.SRCALPHA)
 
     def tick(self, frame):
         for entity in self.game.entitymanager:
@@ -32,20 +33,22 @@ class Renderer:
                 sprite.tick(self.client.framerate)
 
     def render(self, focus: bool, mousex: int, mousey: int):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
         for entity in self.game.entitymanager:
             sprite: Sprite = getattr(entity, "sprite", None)
             if sprite:
                 sprite.render(self.screen)
         if focus:  # 如果鼠标在屏幕类
             if not self.client.player:
-                text, rect = self.resourcemanager.font.render("点击放置新蛇", fgcolor=(255, 0, 0), size=15)
+                mousex = mousex // self.grid_size * self.grid_size
+                mousey = mousey // self.grid_size * self.grid_size
+
+                text, rect = self.resourcemanager.font.render("点击放置新蛇", fgcolor=(255, 0, 0), size=self.grid_size)
                 rect.centerx = mousex
-                rect.top = mousey + Player.radius
+                rect.top = mousey + self.grid_size
                 self.screen.blit(text, rect)
-                pygame.draw.circle(
+                pygame.draw.rect(
                     self.screen,
                     self.client.connection.playerinfo.color,
-                    (mousex, mousey),
-                    Player.radius,
-                    width=3)
+                    (mousex, mousey, self.grid_size, self.grid_size),
+                    width=4)

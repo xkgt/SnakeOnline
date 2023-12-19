@@ -2,27 +2,28 @@ from pygame import Surface
 
 from gui import layouts
 from .Screen import Screen
-from .TitleScreen import TitleScreen
 from gui.widgets import ProgressBar, Label
 
 
 class InitScreen(Screen):
-    def __init__(self, maxvalue):
+    def __init__(self, maxvalue, screen=None, callback=None):
         super().__init__()
         self.maxvalue = maxvalue
         self.value = 0
         self.displayvalue = 0
+        self.screen = screen
+        self.callback = callback
 
         self.surface = None  # 用于与标题界面切换的屏幕
         self.progressbar = None
         self.labelcenter = None
-        self.titlescreen = TitleScreen()
 
         self.x = 0  # 显示坐标
         self.t = 0  # 加载完成后的停留时间
 
     def init(self, width, height):
-        self.window.initscreen(self.titlescreen)
+        if self.screen:
+            self.window.initscreen(self.screen)
         self.surface = Surface((width, height))
         self.progressbar = ProgressBar(700, 30, self.maxvalue * 100)
         layouts.vertical_layout(
@@ -42,8 +43,10 @@ class InitScreen(Screen):
         self.progressbar.value = self.displayvalue
         if self.value >= self.maxvalue:
             if self.t == 0:  # 加载完成后启动游戏
-                self.client.start_game()
-            self.titlescreen.tick(frame)
+                if self.callback:
+                    self.callback()
+            if self.screen:
+                self.screen.tick(frame)
 
     def render(self, surface, mousex: int, mousey: int):
         self.surface.fill((255, 255, 255))
@@ -55,13 +58,13 @@ class InitScreen(Screen):
             self.displayvalue = min(self.displayvalue, self.maxvalue * 100)
 
         if self.value >= self.maxvalue:
-            self.titlescreen.render(surface, mousex, mousey)
+            self.screen.render(surface, mousex, mousey)
             if self.t >= self.client.framerate // 2:
                 self.x += self.width / self.client.framerate * 5
             else:
                 self.t += 1
         if self.x >= self.width:
-            self.window.setscreen(self.titlescreen)
+            self.window.setscreen(self.screen)
         else:
             rect = self.window.rect
             rect.x = self.x

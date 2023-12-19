@@ -27,16 +27,16 @@ class Handler:
 
 
 class Package:
-    handler: Callable
+    pkg_handler: Callable
     parameters: list[inspect.Parameter]
 
     def __init__(self, func):
         self.func = func
         self.name = func.__name__
 
-    def set_handler(self, handler):
-        self.handler = handler
-        self.parameters = list(inspect.signature(handler).parameters.values())
+    def handler(self, pkg_handler):
+        self.pkg_handler = pkg_handler
+        self.parameters = list(inspect.signature(pkg_handler).parameters.values())
         self.parameters.pop(0)  # self
 
     def __get__(self, instance, owner):
@@ -48,9 +48,9 @@ in_server = Package
 
 
 class BoundPackage:
-    def __init__(self, instance: Handler, package):
-        self.instance = instance
+    def __init__(self, instance: Handler, package: Package):
         self.package = package
+        self.instance = instance
 
     def __call__(self, *args, **kwargs):
         global _args, _instance, _pkg_name
@@ -64,10 +64,10 @@ class BoundPackage:
         self.package.func(_instance, *args, **kwargs)
 
     def handle(self, *args):
-        self.package.handler(self.instance, *args)
+        self.package.pkg_handler(self.instance, *args)
 
     @property
-    def parameters(self):
+    def parameters(self) -> list[inspect.Parameter]:
         return self.package.parameters
 
     def enable(self):
