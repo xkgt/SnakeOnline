@@ -64,29 +64,30 @@ class Player(Entity, Body):
         self.synchronize()
 
     def move(self):
-        pos = self.pos + self.direction.value
-        size = self.game.size
-        pos.x = pos.x % size.w  # 确保坐标在地图内
-        pos.y = pos.y % size.h
-        self.update_chain(pos)
-        # 吃食物
-        for food in self.entitymanager.all_of_type(Food):
-            if food.collision(self):
-                food.kill()
-                self.add_body()
-        if self.invincible_time == 0:
-            # 碰撞
-            for player in self.entitymanager.all_of_type(Player):
-                if player.invincible_time == 0 and not player.dead:
-                    if player != self:
-                        if player.collision(self):
-                            self.die()
-                            if Entity.collision(self, player):
-                                player.die()
-                    else:  # 与自己碰撞
-                        if self.body and self.body.body:
-                            if self.body.body.collision(self):
+        if not self.dead:
+            pos = self.pos + self.direction.value
+            size = self.game.size
+            pos.x = pos.x % size.w  # 确保坐标在地图内
+            pos.y = pos.y % size.h
+            self.update_chain(pos)
+            # 吃食物
+            for food in self.entitymanager.all_of_type(Food):
+                if food.collision(self):
+                    food.kill()
+                    self.add_body()
+            if self.invincible_time == 0:
+                # 碰撞
+                for player in self.entitymanager.all_of_type(Player):
+                    if player.invincible_time == 0 and not player.dead:
+                        if player != self:
+                            if player.collision(self):
                                 self.die()
+                                if Entity.collision(self, player):
+                                    player.die()
+                        else:  # 与自己碰撞
+                            if self.body and self.body.body:
+                                if self.body.body.collision(self):
+                                    self.die()
 
     def collision(self, entity: "Body") -> bool:
         return Body.collision(self, entity)
