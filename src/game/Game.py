@@ -35,8 +35,8 @@ class Game(IGame):
             if c.playerinfo.name == name:
                 name = f"Player_{name}"
                 break
-        self.logger.info(f"新的连接: {connection}")
         playerinfo = PlayerInfo(name, self.colors.pop(0))
+        self.logger.info(f"新的连接: {playerinfo}")
         # 成功加入，设置客户端信息
         connection.set_playerinfo(playerinfo)
         connection.set_game(self)
@@ -53,7 +53,7 @@ class Game(IGame):
 
     def handle_exit(self, connection: Connection):
         """处理退出"""
-        self.logger.info(f"断开: {connection}")
+        self.logger.info(f"断开: {connection.playerinfo}")
         self.colors.append(connection.playerinfo.color)
         self.connectionlist.remove(connection)
         self.playerlist.remove(connection.playerinfo)

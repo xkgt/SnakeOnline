@@ -11,8 +11,8 @@ class PlayerSprite(EntitySprite[Player]):
         self.time = 0
 
     def tick(self, fps):
-        if self.entity.death:
-            if self.entity.death_time <= self.renderer.game.framerate:  # 一秒内
+        if self.entity.dead:
+            if self.entity.dead_time <= self.renderer.game.framerate:  # 一秒内
                 self.time += 1
                 if self.time > fps // self.entity.length - 1:
                     self.render_num -= 1
@@ -29,4 +29,4 @@ class PlayerSprite(EntitySprite[Player]):
             if count > 0:
                 self.render_body(surface, body.body, count)
         rect = Rect(body.pos*self.renderer.grid_size, (self.renderer.grid_size, self.renderer.grid_size))
-        pygame.draw.rect(surface, self.entity.playerinfo.color if not self.entity.death else (255, 0, 0), rect)
+        pygame.draw.rect(surface, self.entity.playerinfo.color if not self.entity.dead else (255, 0, 0), rect)

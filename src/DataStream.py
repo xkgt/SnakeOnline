@@ -8,16 +8,6 @@ class DataStream(io.BytesIO):
     def __init__(self, *args):  # 删掉后某地方会有类型警告
         super().__init__(*args)
 
-    # def write(self, __buffer):
-    #     print(__buffer)
-    #     return super().write(__buffer)
-    #
-    # def read(self, __size = ...):
-    #     print(__size)
-    #     a = super().read(__size)
-    #     print(a)
-    #     return a
-
     def __lshift__(self, other):
         if hasattr(other, "write"):
             other.write(self)
@@ -35,11 +25,11 @@ class DataStream(io.BytesIO):
     write_bytes = io.BytesIO.write
     read_bytes = io.BytesIO.read
 
-    def read_int(self) -> int:
-        return struct.unpack("i", self.read(4))[0]
-
     def write_int(self, value: int):
         self.write(struct.pack("i", value))
+
+    def read_int(self) -> int:
+        return struct.unpack("i", self.read(4))[0]
 
     def write_short(self, value: int):
         self.write(struct.pack("h", value))
@@ -57,29 +47,39 @@ class DataStream(io.BytesIO):
         data = self.read(size)
         return data.decode("utf8")
 
+    def write_float(self, value: float):
+        self.write(struct.pack("f", value))
+
     def read_float(self) -> float:
         return struct.unpack("f", self.read(4))[0]
 
-    def write_float(self, value: float):
-        self.write(struct.pack("f", value))
+    def write_bool(self, value: bool):
+        self.write(value.to_bytes(1, sys.byteorder))
 
     def read_bool(self) -> bool:
         return bool.from_bytes(self.read(1), sys.byteorder)
 
-    def write_bool(self, value: bool):
+    def write_byte(self, value: int):
         self.write(value.to_bytes(1, sys.byteorder))
 
     def read_byte(self) -> int:
         return int.from_bytes(self.read(1), sys.byteorder)
 
-    def write_byte(self, value: int):
-        self.write(value.to_bytes(1, sys.byteorder))
+    def write_uuid(self, value: UUID):
+        self.write(value.bytes)
 
     def read_uuid(self) -> UUID:
         return UUID(bytes=self.read(16))
 
-    def write_uuid(self, value: UUID):
-        self.write(value.bytes)
+    def write_bools(self, b1, b2=False, b3=False, b4=False, b5=False, b6=False, b7=False, b8=False):
+        a = (b1 << 1) + b2
+        a = (a << 1) + b3
+        a = (a << 1) + b4
+        a = (a << 1) + b5
+        a = (a << 1) + b6
+        a = (a << 1) + b7
+        a = (a << 1) + b8
+        self.write_byte(a)
 
     def read_bools(self) -> tuple[bool, bool, bool, bool, bool, bool, bool, bool]:
         v = self.read_byte()
@@ -92,13 +92,3 @@ class DataStream(io.BytesIO):
         b7 = v & 2 == 2
         b8 = v & 1 == 1
         return b1, b2, b3, b4, b5, b6, b7, b8
-
-    def write_bools(self, b1, b2=False, b3=False, b4=False, b5=False, b6=False, b7=False, b8=False):
-        a = (b1 << 1) + b2
-        a = (a << 1) + b3
-        a = (a << 1) + b4
-        a = (a << 1) + b5
-        a = (a << 1) + b6
-        a = (a << 1) + b7
-        a = (a << 1) + b8
-        self.write_byte(a)

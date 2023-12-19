@@ -8,7 +8,6 @@ from resouces import ResourceManager
 
 if TYPE_CHECKING:
     from Client import Client
-from game.entities import *
 from gui.sprites import *
 
 

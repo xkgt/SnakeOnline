@@ -1,8 +1,10 @@
 import math
 from collections import namedtuple
 from uuid import UUID
-from DataStream import DataStream
+
 from pygame import Color as _Color, Vector2 as _Vector2
+
+from DataStream import DataStream
 
 __all__ = [
     "Color",
@@ -48,7 +50,9 @@ class Vector2(_Vector2, Serializable):
 
     @classmethod
     def read(cls, stream: DataStream):
-        return cls(stream >> float, stream >> float)
+        x = stream >> float
+        y = stream >> float
+        return cls(x, y)
 
     def write(self, stream: DataStream):
         stream << self.x << self.y

@@ -2,14 +2,12 @@ import logging
 import time
 from typing import Optional, Callable
 
-from pygame.time import Clock
-
 from GameSide import GameSide
 from Ticker import Ticker
 from game import IGame, Game
 from gui import Window, Renderer
-from gui.screens import InfoScreen, TitleScreen, GameScreen
-from network import Connection
+from gui.screens import PromptScreen, TitleScreen, GameScreen
+from network import Connection, NetworkSystem
 from resouces import ResourceManager
 
 
@@ -17,22 +15,17 @@ class Client(Ticker, GameSide):
     instance: "Client"
 
     def __init__(self, resourcemanager: ResourceManager):
+        GameSide.__init__(self)
         self.instance = self
         self.resourcemanager = resourcemanager
         self.config = resourcemanager.config
-        GameSide.__init__(self)
         Ticker.__init__(self, self.config.fps)
         # 日志
         self.logger = logging.getLogger(Client.__name__)
-        self.logger.setLevel(logging.INFO)
 
         self.window = Window(self)
         self.renderer: Optional[Renderer] = None  # 进游戏时存在
-
         self.connection: Optional[Connection] = None  # 进游戏时存在
-
-        self.tpsdetector = Clock()
-        self.currenttps = 0
 
     @property
     def player(self):
@@ -42,13 +35,11 @@ class Client(Ticker, GameSide):
 
     def tick(self, frame):
         self.window.tick(frame)
+        if self.networksystem:
+            self.networksystem.tick()
         if self.game:
             if frame % (self.framerate // self.game.framerate) == 0:  # 模拟tps
                 self.game.tick(frame // self.game.framerate)
-                self.tpsdetector.tick(0)
-                self.currenttps = self.tpsdetector.get_fps()
-        if self.networksystem:
-            self.networksystem.tick()
         if self.connection and not self.connection.is_local():
             try:
                 self.connection.recv_data()
@@ -57,7 +48,7 @@ class Client(Ticker, GameSide):
             except Exception as e:
                 self.logger.exception(e)
                 self.disconnect()
-                self.window.setscreen(InfoScreen(TitleScreen(), str(e)))
+                self.window.setscreen(PromptScreen(TitleScreen(), str(e)))
         if self.renderer:
             self.renderer.tick(frame)
         self.window.update()
@@ -76,22 +67,23 @@ class Client(Ticker, GameSide):
                 self.connection.connect_to(address)
                 self.connection.socket.setblocking(False)
                 if run:
-                    sc = InfoScreen(lastscreen, "正在登录", None, False)
-                    self.window.setscreen(sc)
+                    screen = PromptScreen(lastscreen, "正在登录", None, False)
+                    self.window.setscreen(screen)
                     # 登录
                     self.connection.login(self.resourcemanager.config.name)
                     time.sleep(5)
-                    if self.window.screen == sc:  # 还是登录屏幕，代表连接出问题
+                    if self.window.screen == screen:  # 还是登录屏幕，代表连接出问题
                         self.disconnect()
-                        self.window.setscreen(InfoScreen(lastscreen, "服务器未响应"))
+                        self.window.setscreen(PromptScreen(lastscreen, "服务器未响应"))
                 else:
                     self.disconnect()
             except Exception as e:
                 if run:
                     self.disconnect()
-                    self.window.setscreen(InfoScreen(lastscreen, f"连接失败：{e}", None))
+                    self.logger.exception(e)
+                    self.window.setscreen(PromptScreen(lastscreen, f"连接失败：{e}", None))
 
-        self.window.setscreen(InfoScreen(lastscreen, "正在连接", stop))
+        self.window.setscreen(PromptScreen(lastscreen, "正在连接", stop))
         self.backgroundexecutor.submit(connect)
 
     def create_connection(self) -> Connection:
@@ -140,5 +132,9 @@ class Client(Ticker, GameSide):
 
     def end(self):
         self.disconnect()
-        self.backgroundexecutor.shutdown()
         self.window.close()
+        self.backgroundexecutor.shutdown()
+
+    def publish(self, port=0):
+        assert not self.networksystem and isinstance(self.game, Game)
+        self.networksystem = NetworkSystem(self.game, port)

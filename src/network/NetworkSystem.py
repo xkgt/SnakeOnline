@@ -15,7 +15,7 @@ class NetworkSystem:
         self.logger.setLevel(logging.INFO)
         self.selector = selectors.DefaultSelector()
         self.serversocket = socket.create_server(("", port))
-        self.logger.info("绑定端口 %d", self.serversocket.getsockname()[1])
+        self.logger.info(f"绑定端口 {self.serversocket.getsockname()[1]}")
         self.serversocket.setblocking(False)
         self.selector.register(self.serversocket, selectors.EVENT_READ, data=self)
 
@@ -34,8 +34,6 @@ class NetworkSystem:
                 self.logger.info("断开连接 %s", connection.socket.getpeername())
             else:
                 self.logger.exception("断开连接 %s 原因:%s", connection.socket.getpeername(), e)
-            # raise e
-            # self.selector.unregister(connection.socket)
             connection.close()
 
     def new_connect(self):

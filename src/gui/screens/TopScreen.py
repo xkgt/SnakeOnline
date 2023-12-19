@@ -11,25 +11,25 @@ class TopScreen(Screen):
     def __init__(self):
         super().__init__()
         # 提示
-        self.tip_label: Optional[Label] = None
-        self.tip_time = 0
+        self.prompt_label: Optional[Label] = None
+        self.prompt_time = 0
 
     def render(self, surface, mousex: int, mousey: int):
         super().render(surface, mousex, mousey)
-        if self.tip_time:
-            self.tip_label.render(surface, mousex, mousey)
+        if self.prompt_time:
+            self.prompt_label.render(surface, mousex, mousey)
 
     def tick(self, frame):
-        if self.tip_time:
-            self.tip_time -= 1
+        if self.prompt_time:
+            self.prompt_time -= 1
 
-    def tip(self, label_or_text: Union[Label, str], time=1):
+    def prompt(self, label_or_text: Union[Label, str], time=1):
         """弹出提示"""
         if isinstance(label_or_text, str):
             label_or_text = Label(self.font, label_or_text, fgcolor=(255, 100, 0), size=40)
-        self.tip_label = label_or_text
-        self.tip_label.rect.center = self.window.rect.center
-        self.tip_time = int(time * self.client.framerate)
+        self.prompt_label = label_or_text
+        self.prompt_label.rect.center = self.window.rect.center
+        self.prompt_time = int(time * self.client.framerate)
 
     def keydown(self, unicode, key, mod, **kwargs):
         if key == pygame.K_e:

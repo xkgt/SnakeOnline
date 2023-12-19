@@ -70,6 +70,9 @@ class Window(Listener):
     def quit(self, **kwargs):
         self.client.stop()
 
+    def getmousepos(self):
+        return pygame.mouse.get_pos()
+
     def windowsizechanged(self, **kwargs):
         if self.screen:
             self.initscreen(self.screen)

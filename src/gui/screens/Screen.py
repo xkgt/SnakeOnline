@@ -43,9 +43,9 @@ class Screen(Paintable, Listener):
         for widget in self.widgets:
             widget.render(surface, mousex, mousey)
 
-    def render_game(self, surface: Surface, mousex: int, mousey: int, game_render_rect: Rect, focus: bool):
+    def render_game(self, surface: Surface, mousex: int, mousey: int, render_rect: Rect, focus: bool):
         """绘制游戏到屏幕上"""
-        game_display_rect = self.get_game_display_rect(game_render_rect)
+        game_display_rect = self.get_game_display_rect(render_rect)
         # 鼠标
         if focus:
             if game_display_rect.collidepoint(mousex, mousey):
@@ -65,17 +65,17 @@ class Screen(Paintable, Listener):
         mousey = game_screen_rect.h / game_display_rect.h * mousey
         return mousex, mousey
 
-    def get_game_display_rect(self, game_render_rect: Rect) -> Rect:
+    def get_game_display_rect(self, render_rect: Rect) -> Rect:
         """已指定区域为范围获取绘制的区域"""
         game_screen_rect = self.client.renderer.screen.get_rect()
         # 缩放
-        if game_render_rect.h >= game_render_rect.w:
-            game_screen_rect.h = game_render_rect.w / game_screen_rect.w * game_screen_rect.h
-            game_screen_rect.w = game_render_rect.w
+        if render_rect.h >= render_rect.w:
+            game_screen_rect.h = render_rect.w / game_screen_rect.w * game_screen_rect.h
+            game_screen_rect.w = render_rect.w
         else:
-            game_screen_rect.w = game_render_rect.h / game_screen_rect.h * game_screen_rect.w
-            game_screen_rect.h = game_render_rect.h
-        game_screen_rect.center = game_render_rect.center
+            game_screen_rect.w = render_rect.h / game_screen_rect.h * game_screen_rect.w
+            game_screen_rect.h = render_rect.h
+        game_screen_rect.center = render_rect.center
         return game_screen_rect
 
     @property
@@ -90,17 +90,12 @@ class Screen(Paintable, Listener):
     def window(self):
         return self.client.window
 
-    # def __setattr__(self, key, value):
-    #     if isinstance(value, Widget):
-    #         self.initwidget(value)
-    #     super().__setattr__(key, value)
-
     def initwidget(self, widget):
         widget.screen = self
         return widget
 
     def getmousepos(self):
-        return pygame.mouse.get_pos()
+        return self.window.getmousepos()
 
     def back(self):
         ...

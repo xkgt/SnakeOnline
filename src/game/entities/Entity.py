@@ -64,4 +64,4 @@ class Entity(Serializable):
         cls.sub_classes.append(cls)
 
     def __str__(self):
-        return f"<{self.__class__.__name__}[uuid={self.uuid},pos={self.pos}]>"
+        return f"{self.__class__.__name__}(uuid={self.uuid},pos={self.pos})"

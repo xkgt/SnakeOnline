@@ -5,12 +5,12 @@ from .Screen import Screen
 from gui.widgets import Label, Button, Widget
 
 
-class InfoScreen(Screen):
-    def __init__(self, lastscreen: Screen, label_or_text: Union[Label, str], back_func=None, has_back_button=True):
+class PromptScreen(Screen):
+    def __init__(self, lastscreen: Screen, label_or_text: Union[Label, str], back_callback=None, has_back_button=True):
         super().__init__()
         self.lastscreen = lastscreen
         self.label_or_text = label_or_text
-        self.back_func = back_func
+        self.back_func = back_callback
         self.has_back_button = has_back_button
 
     def init(self, width, height):

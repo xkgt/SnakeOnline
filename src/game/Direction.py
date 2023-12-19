@@ -11,7 +11,7 @@ class Direction(Serializable, Enum):
     LEFT = (-1, 0)
     RIGHT = (1, 0)
 
-    def new_random(self):
+    def new_random_direction(self):
         values = {self.UP, self.DOWN, self.RIGHT, self.LEFT}
         values.remove(self)
         return random.choice(list(values))
@@ -31,8 +31,8 @@ class Direction(Serializable, Enum):
         return reverse_mapping[self]
 
     def write(self, stream: DataStream):
-        stream << [self.UP, self.DOWN, self.RIGHT, self.LEFT].index(self)
+        stream.write_byte([self.UP, self.DOWN, self.RIGHT, self.LEFT].index(self))
 
     @classmethod
     def read(cls, stream: DataStream):
-        return [cls.UP, cls.DOWN, cls.RIGHT, cls.LEFT][stream >> int]
+        return [cls.UP, cls.DOWN, cls.RIGHT, cls.LEFT][stream.read_byte()]

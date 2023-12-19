@@ -1,6 +1,6 @@
 from gui import layouts
 from .GameScreen import GameScreen
-from .InfoScreen import InfoScreen
+from .PromptScreen import PromptScreen
 from .Screen import Screen
 from gui.widgets import TextLine, Button, Widget, Label
 
@@ -18,14 +18,14 @@ class OnlineScreen(Screen):
             else:
                 port = 5566
         except ValueError:
-            self.window.setscreen(InfoScreen(self, "格式错误，输入值应为0~65536范围内的数字"))
+            self.window.setscreen(PromptScreen(self, "格式错误，输入值应为0~65536范围内的数字"))
         else:
             try:
                 self.client.publish(port)
             except Exception as e:
-                self.window.setscreen(InfoScreen(self.lastscreen, str(e)))
+                self.window.setscreen(PromptScreen(self.lastscreen, str(e)))
             else:
-                self.window.topscreen.tip(f"端口已开放{port}", 2)
+                self.window.topscreen.prompt(f"端口已开放{port}", 2)
                 self.window.setscreen(GameScreen())
 
     def connect(self):
@@ -33,7 +33,7 @@ class OnlineScreen(Screen):
             ip, port = self.inputline.text.split(":")
             port = int(port)
         except ValueError:
-            self.window.setscreen(InfoScreen(self, "格式错误，格式为：\"地址:端口\""))
+            self.window.setscreen(PromptScreen(self, "格式错误，格式为：\"地址:端口\""))
         else:
             self.client.connect((ip, port), self)
 

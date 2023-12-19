@@ -1,5 +1,6 @@
 from GameSide import GameSide
 from game import Game
+from network import NetworkSystem
 from Ticker import Ticker
 
 
@@ -9,7 +10,7 @@ class Server(Ticker, GameSide):
         GameSide.__init__(self)
         self.game = Game()
         self.game.start()
-        self.publish(port)
+        self.networksystem = NetworkSystem(self.game, port)
 
     def tick(self, frame):
         self.networksystem.tick()

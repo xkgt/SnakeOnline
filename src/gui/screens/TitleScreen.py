@@ -6,7 +6,6 @@ from pygame import Rect
 
 from gui import layouts
 from gui.widgets import Button, Widget, Label
-from game import Direction
 from .GameScreen import GameScreen
 from .OnlineScreen import OnlineScreen
 from .Screen import Screen
@@ -72,7 +71,7 @@ class TitleScreen(Screen):
     def quit_game(self):
         self.client.disconnect()
         self.client.start_game()
-        self.window.topscreen.tip("已退出游戏", 0.6)
+        self.window.topscreen.prompt("已退出游戏", 0.6)
         self.window.initscreen(self)  # 按理说当前屏幕还是自己
 
     def tick(self, frame):
@@ -91,8 +90,8 @@ class TitleScreen(Screen):
             if not self.client.player:
                 self.client.connection.request_create_player(self.client.game.random_pos())
             else:
-                if random.randint(0, self.client.framerate * 4) == 0:
-                    self.client.connection.set_direction(Direction.random_direction())
+                if random.randint(0, self.client.framerate) == 0:
+                    self.client.connection.set_direction(self.client.player.direction.new_random_direction())
         super().tick(frame)
 
     def render(self, surface, mousex: int, mousey: int):

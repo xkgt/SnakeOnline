@@ -8,7 +8,7 @@ import pygame
 # noinspection PyTypeChecker
 class ResourceManager:
     def __init__(self, config: Config):
-        self.__futures: dict[str, Future] = {}
+        self._futures: dict[str, Future] = {}
         self.config = config
         self.icon = pygame.image.load("img/icon.png")  # 图标
         self.font = Font("font/biliw.otf")  # 字体
@@ -36,18 +36,18 @@ class ResourceManager:
 
     def load(self, client, screen, callback):
         from gui.screens import InitScreen
-        screen = InitScreen(len(self.__futures), screen, callback)
+        screen = InitScreen(len(self._futures), screen, callback)
         client.window.setscreen(screen)
 
         def a():
-            for k, v in self.__futures.items():
+            for k, v in self._futures.items():
                 setattr(self, k, v.get_value())
                 screen.add()
         client.backgroundexecutor.submit(a)
 
     def __setattr__(self, key, value):
         if isinstance(value, Future):
-            self.__futures[key] = value
+            self._futures[key] = value
         super().__setattr__(key, value)
 
     def play_single_music(self):
@@ -66,14 +66,14 @@ class ResourceManager:
 
 
 class Future:
-    def __init__(self, cls, *args, callback=None, **kwargs):
-        self.cls = cls
+    def __init__(self, load_func, *args, callback=None, **kwargs):
+        self.load_func = load_func
         self.args = args
         self.kwargs = kwargs
         self.callback = callback
 
     def get_value(self):
-        a = self.cls(*self.args, **self.kwargs)
+        a = self.load_func(*self.args, **self.kwargs)
         if self.callback:
             b = self.callback(a)
             if b:

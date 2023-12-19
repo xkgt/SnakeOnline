@@ -1,4 +1,4 @@
-from typing import TypeVar, Union, Callable
+from typing import TypeVar, Callable
 import inspect
 _T = TypeVar("_T")
 

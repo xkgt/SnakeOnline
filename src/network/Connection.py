@@ -86,12 +86,17 @@ class Connection(Handler):
         return self.socket is None
 
     def close(self):
-        if self.networksystem and self.socket:
+        if self.networksystem:
             self.networksystem.selector.unregister(self.socket)
         if self.socket:
             self.socket.close()
         if self.game and self in self.game.connectionlist:
             self.game.handle_exit(self)
+
+    def __str__(self):
+        if self.socket:
+            return f"{self.__class__.__name__}<{self.socket.getpeername()}>"
+        return f"{self.__class__.__name__}<local>"
 
     @in_client
     def login(self, name: str):
@@ -131,7 +136,7 @@ class Connection(Handler):
         self.logger.info("已连接至服务器")
         self.client.window.setscreen(GameScreen())
         if message:
-            self.client.window.topscreen.tip(message, 3)
+            self.client.window.topscreen.prompt(message, 3)
 
     @in_client
     def request_create_player(self, pos: Vector2):
@@ -155,7 +160,7 @@ class Connection(Handler):
         self.game = game
         self.create_entity.enable()  # 创建实体
         self.remove_entity.enable()  # 删除实体
-        self.update_entity.enable()
+        self.update_entity.enable()  # 更新实体
         self.update_playerlist.enable()  # 更新玩家列表
         self.set_player.enable()  # 设置操控玩家
         self.client.join_game(game)  # 加入游戏
@@ -174,7 +179,7 @@ class Connection(Handler):
     @in_server
     def create_entity(self, entity: Entity):
         """创建实体"""
-        if not self.is_local():  # 如果是本地模组，则不发送
+        if not self.is_local():  # 如果是本地模式，则不发送
             id_ = Entity.sub_classes.index(entity.__class__)
             stream = DataStream()
             stream << entity
@@ -235,6 +240,6 @@ class Connection(Handler):
 
     @server_disconnect.handler
     def handle_server_disconnect(self, message: str):
-        from gui.screens import InfoScreen, TitleScreen
+        from gui.screens import PromptScreen, TitleScreen
         self.client.disconnect()
-        self.client.window.setscreen(InfoScreen(TitleScreen(), message))
+        self.client.window.setscreen(PromptScreen(TitleScreen(), message))

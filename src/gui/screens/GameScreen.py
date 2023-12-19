@@ -80,15 +80,16 @@ class GameScreen(Screen):
                 for i in range(5):
                     player.add_body()
             else:
-                self.window.topscreen.tip("你不是房主", 0.3)
+                self.window.topscreen.prompt("你不是房主", 0.3)
         elif key == pygame.K_z:
             # 添加长度
             if self.client.connection.is_local():
-                if self.client.player and not self.client.player.death:
+                if self.client.player and not self.client.player.dead:
                     self.client.player.add_body()
             else:
-                self.window.topscreen.tip("你不是房主", 0.3)
+                self.window.topscreen.prompt("你不是房主", 0.3)
         else:
+            # 移动
             key_map = {
                 pygame.K_w: Direction.UP,
                 pygame.K_s: Direction.DOWN,
@@ -102,29 +103,16 @@ class GameScreen(Screen):
     def mousebuttondown(self, pos, button, **kwargs):
         if button == 1:
             if not self.client.player:
-                if self.mouse_in_game():
-                    x, y = self.get_game_display_rect_mouse_pos(
-                        self.get_game_display_rect(self.game_render_rect),
-                        *self.getmousepos())
+                x, y = self.getmousepos()
+                game_display_rect = self.get_game_display_rect(self.game_render_rect)
+                if game_display_rect.collidepoint(x, y):
+                    x, y = self.get_game_display_rect_mouse_pos(game_display_rect, x, y)
                     pos = Vector2(x//self.client.renderer.grid_size, y//self.client.renderer.grid_size)
                     self.client.connection.request_create_player(pos)
                     raise StopIteration
 
-    # def get_game_display_rect(self):
-    #     x = 30 + 250 + 30  # 游戏区域x
-    #     rect = Rect((0, 0), (self.width - x - 30, self.height))
-    #     rect.centery = self.window.rect.centery
-    #     rect.centerx = x + (self.width - x) / 2
-    #     return rect
-
     def mouse_in_game(self):
         return self.get_game_display_rect(self.game_render_rect).collidepoint(*self.getmousepos())
-
-    # def get_in_game_mouse_pos(self):
-    #     """获得游戏内鼠标坐标"""
-    #     rect = self.get_game_display_rect(self.game_render_rect)
-    #     x, y = self.getmousepos()
-    #     return x - rect.x, y - rect.y
 
     def back(self):
         from .TitleScreen import TitleScreen
