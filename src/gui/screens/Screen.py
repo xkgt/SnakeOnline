@@ -102,4 +102,4 @@ class Screen(Paintable, Listener):
 
     @Listener.event
     def close(self):
-        pygame.key.stop_text_input()
+        ...

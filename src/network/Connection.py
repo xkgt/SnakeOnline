@@ -190,7 +190,6 @@ class Connection(Handler):
         stream = DataStream(data)
         type_ = Entity.sub_classes[id_]
         entity = stream >> type_
-        self.logger.info(f"创建实体 {entity}")
         self.game.entitymanager.add(entity)
 
     @in_server
@@ -212,7 +211,6 @@ class Connection(Handler):
 
     @remove_entity.handler
     def handle_remove_entity(self, entity: Entity):
-        self.logger.info(f"删除实体 {entity}")
         self.game.entitymanager.remove(entity)
 
     @in_server

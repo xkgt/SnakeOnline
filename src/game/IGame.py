@@ -31,6 +31,6 @@ class IGame(Ticker, Serializable):
 
     def random_pos(self) -> Vector2:
         return Vector2(
-            random.randint(0, self.size.w),
-            random.randint(0, self.size.h)
+            random.randint(1, self.size.w-1),
+            random.randint(1, self.size.h-1)
         )

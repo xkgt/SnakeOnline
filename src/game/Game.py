@@ -13,7 +13,7 @@ class Game(IGame):
 
     def __init__(self):
         self.logger = logging.getLogger(Game.__name__)
-        IGame.__init__(self, Size(50, 50), 4)
+        IGame.__init__(self, Size(50, 50), 5)
         # 玩家颜色列表，也是最大玩家数
         self.colors: list[Color] = [Color(30, 233, 30), Color(0, 0, 255), Color(255, 0, 255), ]
 

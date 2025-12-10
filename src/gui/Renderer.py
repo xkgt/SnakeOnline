@@ -37,7 +37,7 @@ class Renderer:
             sprite: Sprite = getattr(entity, "sprite", None)
             if sprite:
                 sprite.render(self.screen)
-        if focus:  # 如果鼠标在屏幕类
+        if focus:  # 如果鼠标在屏幕里
             if not self.client.player:
                 mousex = mousex // self.grid_size * self.grid_size
                 mousey = mousey // self.grid_size * self.grid_size

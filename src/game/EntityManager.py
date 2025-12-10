@@ -1,3 +1,4 @@
+import logging
 from typing import TypeVar, Union
 from uuid import UUID
 from typing import TYPE_CHECKING
@@ -15,6 +16,7 @@ class EntityManager:
     """实体管理器"""
 
     def __init__(self, game: "IGame"):
+        self.logger = logging.getLogger(EntityManager.__name__)
         self.entities: dict[UUID, Entity] = {}
         self.game = game
         self.all_of_type = cache(self.all_of_type)  # 缓存
@@ -24,6 +26,7 @@ class EntityManager:
             entity.update()
 
     def add(self, entity: _T) -> _T:
+        self.logger.info(f"创建实体 {entity}")
         self.entities[entity.uuid] = entity
         entity.game = self.game
         self.all_of_type.cache_clear()
@@ -45,6 +48,7 @@ class EntityManager:
             entity = self.entities.pop(uuid_or_entity.uuid)
         else:
             entity = self.entities.pop(uuid_or_entity)
+        self.logger.info(f"删除实体 {entity}")
         entity.kill()
         self.game.connectionlist.broadcast_remove_entity(entity)
         self.all_of_type.cache_clear()

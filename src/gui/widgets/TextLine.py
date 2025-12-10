@@ -75,7 +75,9 @@ class TextLine(Widget, Listener):
         self.setcursor(v)
         if v:
             pygame.key.start_text_input()
-            pygame.key.set_repeat(500, 50)
-            # pygame.key.set_text_input_rect(self.rect)
         else:
             pygame.key.stop_text_input()
+
+    def close(self):
+        print(1)
+        pygame.key.stop_text_input()
